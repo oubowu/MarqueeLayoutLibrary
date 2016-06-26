@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="MarqueeLayout">
+        <attr name="switchTime" format="integer"/>
+        <attr name="scrollTime" format="integer"/>
+        <attr name="orientation" format="enum">
+            <enum name="up" value="1"/>
+            <enum name="down" value="2"/>
+            <enum name="left" value="3"/>
+            <enum name="right" value="4"/>
+        </attr>
+    </declare-styleable>
+
+</resources>
