@@ -92,7 +92,7 @@ compile 'com.oushangfeng:MarqueeLayout:1.0.0.1'
  mMarqueeLayout1.start();
 ```
 
-### 特别注意,在离开界面和回到界面生命周期加上停止和继续分页
+### 特别注意,在onStop和onResume加上暂停和继续滚动的操作
 ```
 @Override
 protected void onStop() {
