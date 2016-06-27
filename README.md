@@ -1,5 +1,7 @@
 ##一个支持四个方向循环滚动的自定义控件
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-MarqueeLayoutLibrary-green.svg?style=true)](https://android-arsenal.com/details/1/3795)
+
 ### 效果图
 ![](/pic/demo.gif) 
 
