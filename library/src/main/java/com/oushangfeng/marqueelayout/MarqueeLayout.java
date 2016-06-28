@@ -19,22 +19,26 @@ import java.util.TimerTask;
  */
 public class MarqueeLayout extends ViewGroup {
 
-    private Timer mTimer;
-
-    private int mItemCount;
-    private int mCurrentPosition;
-    private Scroller mScroller;
-    private int mScrollDistance;
-
-    private int mSwitchTime;
-    private int mScrollTime;
-
-    private int mOrientation;
-
     public static final int ORIENTATION_UP = 1;
     public static final int ORIENTATION_DOWN = 2;
     public static final int ORIENTATION_LEFT = 3;
     public static final int ORIENTATION_RIGHT = 4;
+
+    private int mOrientation;
+    private int mItemCount;
+    private int mCurrentPosition;
+    private int mScrollDistance;
+    private int mSwitchTime;
+    private int mScrollTime;
+
+    private Timer mTimer;
+
+    private Scroller mScroller;
+
+    /**
+     * 判断是否手动调用start()的标志位，用于在onWindowFocusChanged辨识是否进行暂停恢复的操作
+     */
+    private boolean mIsStart;
 
     public MarqueeLayout(Context context) {
         super(context);
@@ -306,6 +310,7 @@ public class MarqueeLayout extends ViewGroup {
             // 小于等于1没必要轮播
             return;
         }
+        mIsStart = true;
         mTimer = new Timer();
         mTimer.schedule(new SwitchTimerTask(), mSwitchTime, mSwitchTime);
     }
@@ -317,6 +322,7 @@ public class MarqueeLayout extends ViewGroup {
         if (mTimer == null) {
             return;
         }
+        mIsStart = false;
         mTimer.cancel();
         mTimer.purge();
         mTimer = null;
@@ -347,6 +353,34 @@ public class MarqueeLayout extends ViewGroup {
 
     public int getCurrentPosition() {
         return mCurrentPosition;
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasWindowFocus) {
+        super.onWindowFocusChanged(hasWindowFocus);
+        // Log.e("TAG", "MarqueeLayout-356行-onWindowFocusChanged(): " + hasWindowFocus);
+        if (hasWindowFocus) {
+            carryOn();
+        } else {
+            pause();
+        }
+    }
+
+    private void carryOn() {
+        if (mIsStart && mTimer == null) {
+            mTimer = new Timer();
+            mTimer.schedule(new SwitchTimerTask(), mSwitchTime, mSwitchTime);
+            // Log.e("TAG","MarqueeLayout-371行-carryOn(): ");
+        }
+    }
+
+    private void pause() {
+        if (mIsStart && mTimer != null) {
+            mTimer.cancel();
+            mTimer.purge();
+            mTimer = null;
+            // Log.e("TAG","MarqueeLayout-380行-pause(): ");
+        }
     }
 
 }

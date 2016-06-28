@@ -94,23 +94,6 @@ compile 'com.oushangfeng:MarqueeLayout:1.0.0.1'
  mMarqueeLayout1.start();
 ```
 
-### 特别注意,在onStop和onResume加上暂停和继续滚动的操作
-```
-@Override
-protected void onStop() {
-    super.onStop();
-    mMarqueeLayout.stop();
-    mMarqueeLayout1.stop();
-}
-
-@Override
-protected void onResume() {
-    super.onResume();
-    mMarqueeLayout.start();
-    mMarqueeLayout1.start();
-}
-```
-
 #### License
 ```
 Copyright 2016 oubowu

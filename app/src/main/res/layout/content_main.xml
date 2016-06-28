@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:background="#118866"
-        app:orientation="down">
+        app:orientation="up">
 
     </com.oushangfeng.marqueelayout.MarqueeLayout>
 
@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/marquee_layout"
         android:background="#dcdcdc"
-        app:orientation="right">
+        app:orientation="left">
 
     </com.oushangfeng.marqueelayout.MarqueeLayout>
 
