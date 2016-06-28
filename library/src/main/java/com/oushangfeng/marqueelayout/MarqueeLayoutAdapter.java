@@ -1,6 +1,5 @@
 package com.oushangfeng.marqueelayout;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -24,11 +23,11 @@ public class MarqueeLayoutAdapter<T> {
         return mDatas;
     }
 
-    public void setCustomView(Context context, int orientation, int layoutId, List<T> data, InitViewCallBack<T> callBack) {
+    public void setCustomView(MarqueeLayout layout, int layoutId, List<T> data, InitViewCallBack<T> callBack) {
         if (data == null) {
             return;
         } else if (data.size() > 1) {
-            switch (orientation) {
+            switch (layout.getOrientation()) {
                 case MarqueeLayout.ORIENTATION_UP:
                 case MarqueeLayout.ORIENTATION_LEFT:
                     data.add(data.get(0));
@@ -44,7 +43,7 @@ public class MarqueeLayoutAdapter<T> {
         mDatas = data;
 
         for (int i = 0; i < data.size(); i++) {
-            final View view = LayoutInflater.from(context).inflate(layoutId, null);
+            final View view = LayoutInflater.from(layout.getContext()).inflate(layoutId, layout, false);
             if (callBack != null) {
                 callBack.init(view, data.get(i));
             }

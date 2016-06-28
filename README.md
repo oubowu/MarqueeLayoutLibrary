@@ -7,7 +7,7 @@
 
 ### 使用
 ```groovy
-compile 'com.oushangfeng:MarqueeLayout:1.0.0.2'
+compile 'com.oushangfeng:MarqueeLayout:1.0.1'
 ```
 
 ### 属性
@@ -67,10 +67,10 @@ compile 'com.oushangfeng:MarqueeLayout:1.0.0.2'
  list.add("像海浪撞过了山丘以后还能撑多久 他可能只为你赞美一句后往回流");
  list.add("少了有点不甘 但多了太烦");
  MarqueeLayoutAdapter<String> adapter = new MarqueeLayoutAdapter<>();
- adapter.setCustomView(this, mMarqueeLayout.getOrientation(), R.layout.item_simple_text, list, new MarqueeLayoutAdapter.InitViewCallBack<String>() {
+ adapter.setCustomView(mMarqueeLayout, R.layout.item_simple_text, list, new MarqueeLayoutAdapter.InitViewCallBack<String>() {
      @Override
      public void init(View view, String item) {
-          ((TextView) view).setText(item);
+         ((TextView) view).setText(item);
      }
  });
  mMarqueeLayout.setAdapter(adapter);
@@ -84,10 +84,10 @@ compile 'com.oushangfeng:MarqueeLayout:1.0.0.2'
  imgs.add("http://img5.imgtn.bdimg.com/it/u=506823331,38014690&fm=11&gp=0.jpg");
  imgs.add("http://h.hiphotos.baidu.com/baike/pic/item/2fdda3cc7cd98d10e6a5b4aa273fb80e7bec903c.jpg");
  MarqueeLayoutAdapter<String> adapter1 = new MarqueeLayoutAdapter<>();
- adapter1.setCustomView(this, mMarqueeLayout1.getOrientation(), R.layout.item_simple_image, imgs, new MarqueeLayoutAdapter.InitViewCallBack<String>() {
+ adapter1.setCustomView(mMarqueeLayout, R.layout.item_simple_image, imgs, new MarqueeLayoutAdapter.InitViewCallBack<String>() {
      @Override
      public void init(View view, String item) {
-          Glide.with(view.getContext()).load(item).into((ImageView) view);
+         Glide.with(view.getContext()).load(item).into((ImageView) view);
      }
  });
  mMarqueeLayout1.setAdapter(adapter1);

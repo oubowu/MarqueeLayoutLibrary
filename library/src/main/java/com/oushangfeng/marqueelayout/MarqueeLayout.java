@@ -71,6 +71,7 @@ public class MarqueeLayout extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+
         // 声明临时变量存储父容器的期望值
         int parentDesireHeight = 0;
         int parentDesireWidth = 0;
@@ -98,15 +99,14 @@ public class MarqueeLayout extends ViewGroup {
             // 考虑父容器内边距
             parentDesireWidth += getPaddingLeft() + getPaddingRight();
             parentDesireHeight += getPaddingTop() + getPaddingBottom();
+            // Log.e("TAG", "MarqueeLayout-100行-onMeasure(): " + parentDesireWidth + ";" + parentDesireHeight + ";" + getSuggestedMinimumWidth() + ";" + getSuggestedMinimumHeight());
             // 尝试比较建议最小值和期望值的大小并取大值
             parentDesireWidth = Math.max(parentDesireWidth, getSuggestedMinimumWidth());
             parentDesireHeight = Math.max(parentDesireHeight, getSuggestedMinimumHeight());
             mScrollDistance = mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP ? parentDesireHeight : parentDesireWidth;
         }
-
         // 设置最终测量值
         setMeasuredDimension(resolveSize(parentDesireWidth, widthMeasureSpec), resolveSize(parentDesireHeight, heightMeasureSpec));
-
     }
 
     @Override
@@ -199,31 +199,28 @@ public class MarqueeLayout extends ViewGroup {
                         // 滚动到最后一个时，迅速回到第一个，造成轮播的假象
                         fastScroll(-mCurrentPosition * mScrollDistance);
                         mCurrentPosition = 0;
-                        invalidate();
                     }
                     break;
                 case ORIENTATION_DOWN:
                     if (mCurrentPosition <= 0) {
                         fastScroll((mItemCount - 1) * mScrollDistance);
                         mCurrentPosition = mItemCount - 1;
-                        invalidate();
                     }
                     break;
                 case ORIENTATION_LEFT:
                     if (mCurrentPosition >= mItemCount - 1) {
                         fastScroll(-mCurrentPosition * mScrollDistance);
                         mCurrentPosition = 0;
-                        invalidate();
                     }
                     break;
                 case ORIENTATION_RIGHT:
                     if (mCurrentPosition <= 0) {
                         fastScroll((mItemCount - 1) * mScrollDistance);
                         mCurrentPosition = mItemCount - 1;
-                        invalidate();
                     }
                     break;
             }
+            invalidate();
         }
     }
 
@@ -336,8 +333,9 @@ public class MarqueeLayout extends ViewGroup {
 
         removeAllViews();
         for (View view : views) {
-            ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            addView(view, lp);
+            /*ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            addView(view, lp);*/
+            addView(view);
         }
 
         mItemCount = views.size();
@@ -358,7 +356,6 @@ public class MarqueeLayout extends ViewGroup {
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
         super.onWindowFocusChanged(hasWindowFocus);
-        // Log.e("TAG", "MarqueeLayout-356行-onWindowFocusChanged(): " + hasWindowFocus);
         if (hasWindowFocus) {
             carryOn();
         } else {
@@ -370,7 +367,6 @@ public class MarqueeLayout extends ViewGroup {
         if (mIsStart && mTimer == null) {
             mTimer = new Timer();
             mTimer.schedule(new SwitchTimerTask(), mSwitchTime, mSwitchTime);
-            // Log.e("TAG","MarqueeLayout-371行-carryOn(): ");
         }
     }
 
@@ -379,7 +375,6 @@ public class MarqueeLayout extends ViewGroup {
             mTimer.cancel();
             mTimer.purge();
             mTimer = null;
-            // Log.e("TAG","MarqueeLayout-380行-pause(): ");
         }
     }
 
