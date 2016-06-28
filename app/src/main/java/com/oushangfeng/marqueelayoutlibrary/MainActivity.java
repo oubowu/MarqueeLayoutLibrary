@@ -58,21 +58,6 @@ public class MainActivity extends AppCompatActivity {
         });
         mMarqueeLayout1.setAdapter(adapter1);
         mMarqueeLayout1.start();
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mMarqueeLayout.stop();
-        mMarqueeLayout1.stop();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mMarqueeLayout.start();
-        mMarqueeLayout1.start();
     }
 
 }
