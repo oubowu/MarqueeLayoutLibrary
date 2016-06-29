@@ -45,14 +45,14 @@ public class MarqueeLayoutAdapter<T> {
         for (int i = 0; i < data.size(); i++) {
             final View view = LayoutInflater.from(layout.getContext()).inflate(layoutId, layout, false);
             if (callBack != null) {
-                callBack.init(view, data.get(i));
+                callBack.init(view, i, data.get(i));
             }
             mViews.add(view);
         }
     }
 
     public interface InitViewCallBack<T> {
-        void init(View view, T item);
+        void init(View view, int position, T item);
     }
 
 }

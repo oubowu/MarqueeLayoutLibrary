@@ -10,6 +10,8 @@
             <enum name="left" value="3"/>
             <enum name="right" value="4"/>
         </attr>
+        <attr name="enableAlphaAnim" format="boolean"/>
+        <attr name="enableScaleAnim" format="boolean"/>
     </declare-styleable>
 
 </resources>

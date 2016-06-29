@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         MarqueeLayoutAdapter<String> adapter = new MarqueeLayoutAdapter<>();
         adapter.setCustomView(mMarqueeLayout, R.layout.item_simple_text, list, new MarqueeLayoutAdapter.InitViewCallBack<String>() {
             @Override
-            public void init(View view, String item) {
+            public void init(View view, int position, String item) {
                 ((TextView) view).setText(item);
             }
         });
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         MarqueeLayoutAdapter<String> adapter1 = new MarqueeLayoutAdapter<>();
         adapter1.setCustomView(mMarqueeLayout, R.layout.item_simple_image, imgs, new MarqueeLayoutAdapter.InitViewCallBack<String>() {
             @Override
-            public void init(View view, String item) {
+            public void init(View view, int position, String item) {
                 Glide.with(view.getContext()).load(item).into((ImageView) view);
             }
         });

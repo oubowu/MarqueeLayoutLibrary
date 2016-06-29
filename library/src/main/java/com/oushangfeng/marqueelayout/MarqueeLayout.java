@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Build;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,11 @@ public class MarqueeLayout extends ViewGroup {
      * 判断是否手动调用start()的标志位，用于在onWindowFocusChanged辨识是否进行暂停恢复的操作
      */
     private boolean mIsStart;
+    /**
+     * 是否开启滚动时子View的缩放和透明度动画
+     */
+    private boolean mEnableAlphaAnim;
+    private boolean mEnableScaleAnim;
 
     public MarqueeLayout(Context context) {
         super(context);
@@ -65,6 +71,8 @@ public class MarqueeLayout extends ViewGroup {
         mSwitchTime = ta.getInt(R.styleable.MarqueeLayout_switchTime, 2500);
         mScrollTime = ta.getInt(R.styleable.MarqueeLayout_scrollTime, 1000);
         mOrientation = ta.getInt(R.styleable.MarqueeLayout_orientation, ORIENTATION_UP);
+        mEnableAlphaAnim = ta.getBoolean(R.styleable.MarqueeLayout_enableAlphaAnim, false);
+        mEnableScaleAnim = ta.getBoolean(R.styleable.MarqueeLayout_enableScaleAnim, false);
         ta.recycle();
         mScroller = new Scroller(context, new AccelerateDecelerateInterpolator());
     }
@@ -103,7 +111,6 @@ public class MarqueeLayout extends ViewGroup {
             // 尝试比较建议最小值和期望值的大小并取大值
             parentDesireWidth = Math.max(parentDesireWidth, getSuggestedMinimumWidth());
             parentDesireHeight = Math.max(parentDesireHeight, getSuggestedMinimumHeight());
-            mScrollDistance = mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP ? parentDesireHeight : parentDesireWidth;
         }
         // 设置最终测量值
         setMeasuredDimension(resolveSize(parentDesireWidth, widthMeasureSpec), resolveSize(parentDesireHeight, heightMeasureSpec));
@@ -117,6 +124,7 @@ public class MarqueeLayout extends ViewGroup {
 
         if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
             final int height = getMeasuredHeight();
+            mScrollDistance = height;
             int multiHeight = 0;
             // 垂直方向跑马灯
             for (int i = 0; i < getChildCount(); i++) {
@@ -124,13 +132,9 @@ public class MarqueeLayout extends ViewGroup {
                 final View child = getChildAt(i);
                 MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
                 if (i == 0 && multiHeight == 0 && mOrientation == ORIENTATION_DOWN) {
-                    // multiHeight = -(child.getMeasuredHeight() + lp.topMargin + lp.bottomMargin);
                     multiHeight = -height;
                     mCurrentPosition = 1;
                 }
-                // child.layout(paddingLeft + lp.leftMargin,  multiHeight + paddingTop + lp.topMargin,
-                //        child.getMeasuredWidth() + paddingLeft + lp.leftMargin,  child.getMeasuredHeight() + multiHeight + paddingTop + lp.topMargin);
-                // multiHeight += child.getMeasuredHeight() + lp.topMargin + lp.bottomMargin;
                 // 垂直方向的话，因为布局高度定死为子控件最大的高度，所以子控件一律位置垂直居中，paddingTop和marginTop均失效
                 child.layout(paddingLeft + lp.leftMargin, (height - child.getMeasuredHeight()) / 2 + multiHeight, child.getMeasuredWidth() + paddingLeft + lp.leftMargin,
                         (height - child.getMeasuredHeight()) / 2 + child.getMeasuredHeight() + multiHeight);
@@ -138,6 +142,7 @@ public class MarqueeLayout extends ViewGroup {
             }
         } else {
             final int width = getMeasuredWidth();
+            mScrollDistance = width;
             int multiWidth = 0;
             // 水平方向跑马灯
             for (int i = 0; i < getChildCount(); i++) {
@@ -145,13 +150,9 @@ public class MarqueeLayout extends ViewGroup {
                 MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
 
                 if (i == 0 && multiWidth == 0 && mOrientation == ORIENTATION_RIGHT) {
-                    // multiWidth = -(child.getMeasuredWidth() + lp.leftMargin + lp.rightMargin);
                     multiWidth = -width;
                     mCurrentPosition = 1;
                 }
-                // child.layout(multiWidth + paddingLeft + lp.leftMargin, paddingTop + lp.topMargin, child.getMeasuredWidth() + multiWidth + paddingLeft + lp.leftMargin,
-                //        child.getMeasuredHeight() + paddingTop + lp.topMargin);
-                // multiWidth += child.getMeasuredWidth() + lp.leftMargin + lp.rightMargin;
                 // 水平方向，因为布局宽度定死为子控件最大的宽度，所以子控件一律位置水平居中，paddingLeft和marginLeft均失效
                 child.layout((width - child.getMeasuredWidth()) / 2 + multiWidth, paddingTop + lp.topMargin,
                         (width - child.getMeasuredWidth()) / 2 + child.getMeasuredWidth() + multiWidth, child.getMeasuredHeight() + paddingTop + lp.topMargin);
@@ -167,29 +168,15 @@ public class MarqueeLayout extends ViewGroup {
         stop();
     }
 
-    private void smoothScroll(int distance) {
-        if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
-            mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, mScrollTime);
-        } else {
-            mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, mScrollTime);
-        }
-    }
-
-    private void fastScroll(int distance) {
-        if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
-            mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, 0);
-        } else {
-            mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, 0);
-        }
-    }
-
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
             if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
                 scrollTo(0, mScroller.getCurrY());
+                handleScrollAnim();
             } else {
                 scrollTo(mScroller.getCurrX(), 0);
+                handleScrollAnim();
             }
             invalidate();
         } else if (mTimer != null) {
@@ -221,6 +208,73 @@ public class MarqueeLayout extends ViewGroup {
                     break;
             }
             invalidate();
+        }
+    }
+
+    private void smoothScroll(int distance) {
+        if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
+            mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, mScrollTime);
+        } else {
+            mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, mScrollTime);
+        }
+    }
+
+    private void fastScroll(int distance) {
+        if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
+            mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, 0);
+        } else {
+            mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, 0);
+        }
+    }
+
+    private void handleScrollAnim() {
+        if (!mEnableAlphaAnim && !mEnableScaleAnim) {
+            return;
+        }
+
+        float rate = 0;
+        boolean notReachBorder = false;
+        int relativeChildPosition = 0;
+
+        switch (mOrientation) {
+            case ORIENTATION_UP:
+                rate = (mScroller.getCurrY() - mScroller.getStartY()) * 1.0f / (mScroller.getFinalY() - mScroller.getStartY()) / 2.0f + 0.5f;
+                notReachBorder = mCurrentPosition != 0;
+                relativeChildPosition = mCurrentPosition - 1;
+                break;
+            case ORIENTATION_DOWN:
+                rate = (mScroller.getCurrY() - mScroller.getStartY()) * 1.0f / (mScroller.getFinalY() - mScroller.getStartY()) / 2.0f + 0.5f;
+                notReachBorder = mCurrentPosition != mItemCount - 1;
+                relativeChildPosition = mCurrentPosition + 1;
+                break;
+            case ORIENTATION_LEFT:
+                rate = (mScroller.getCurrX() - mScroller.getStartX()) * 1.0f / (mScroller.getFinalX() - mScroller.getStartX()) / 2.0f + 0.5f;
+                notReachBorder = mCurrentPosition != 0;
+                relativeChildPosition = mCurrentPosition - 1;
+                break;
+            case ORIENTATION_RIGHT:
+                rate = (mScroller.getCurrX() - mScroller.getStartX()) * 1.0f / (mScroller.getFinalX() - mScroller.getStartX()) / 2.0f + 0.5f;
+                notReachBorder = mCurrentPosition != mItemCount - 1;
+                relativeChildPosition = mCurrentPosition + 1;
+                break;
+        }
+
+        if (notReachBorder) {
+            playAnim(getChildAt(mCurrentPosition), mEnableAlphaAnim, mEnableScaleAnim, rate);
+            playAnim(getChildAt(relativeChildPosition), mEnableAlphaAnim, mEnableScaleAnim, 1.5f - rate);
+        } else {
+            playAnim(getChildAt(mCurrentPosition), mEnableAlphaAnim, mEnableScaleAnim, 1);
+        }
+
+    }
+
+    private void playAnim(View view, boolean enableAlphaAnim, boolean enableScaleAnim, float rate) {
+        if (enableAlphaAnim) {
+            ViewCompat.setAlpha(view, rate);
+        }
+        if (enableScaleAnim) {
+            ViewCompat.setScaleX(view, rate);
+            ViewCompat.setScaleY(view, rate);
         }
     }
 
@@ -333,8 +387,6 @@ public class MarqueeLayout extends ViewGroup {
 
         removeAllViews();
         for (View view : views) {
-            /*ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            addView(view, lp);*/
             addView(view);
         }
 
