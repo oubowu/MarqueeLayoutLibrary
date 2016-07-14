@@ -2,57 +2,46 @@ package com.oushangfeng.marqueelayout;
 
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Oubowu on 2016/6/24 11:19.
  */
-public class MarqueeLayoutAdapter<T> {
-
-    private ArrayList<View> mViews;
+public abstract class MarqueeLayoutAdapter<T> extends BaseAdapter {
 
     private List<T> mDatas;
 
-    public ArrayList<View> getViews() {
-        return mViews;
+    public MarqueeLayoutAdapter(List<T> datas) {
+        mDatas = datas;
     }
 
-    public List<T> getDatas() {
-        return mDatas;
+    @Override
+    public int getCount() {
+        return mDatas == null ? 0 : mDatas.size();
     }
 
-    public void setCustomView(MarqueeLayout layout, int layoutId, List<T> data, InitViewCallBack<T> callBack) {
-        if (data == null) {
-            return;
-        } else if (data.size() > 1) {
-            switch (layout.getOrientation()) {
-                case MarqueeLayout.ORIENTATION_UP:
-                case MarqueeLayout.ORIENTATION_LEFT:
-                    data.add(data.get(0));
-                    break;
-                case MarqueeLayout.ORIENTATION_DOWN:
-                case MarqueeLayout.ORIENTATION_RIGHT:
-                    data.add(0, data.get(data.size() - 1));
-                    break;
-            }
-        }
-
-        mViews = new ArrayList<>(data.size());
-        mDatas = data;
-
-        for (int i = 0; i < data.size(); i++) {
-            final View view = LayoutInflater.from(layout.getContext()).inflate(layoutId, layout, false);
-            if (callBack != null) {
-                callBack.init(view, i, data.get(i));
-            }
-            mViews.add(view);
-        }
+    @Override
+    public T getItem(int position) {
+        return mDatas.get(position);
     }
 
-    public interface InitViewCallBack<T> {
-        void init(View view, int position, T item);
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        final View view = LayoutInflater.from(parent.getContext()).inflate(getItemLayoutId(), parent, false);
+        initView(view, position, getItem(position));
+        return view;
+    }
+
+    public abstract int getItemLayoutId();
+
+    public abstract void initView(View view, int position, T item);
 
 }

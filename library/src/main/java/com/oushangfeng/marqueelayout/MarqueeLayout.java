@@ -3,6 +3,7 @@ package com.oushangfeng.marqueelayout;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.database.DataSetObserver;
 import android.os.Build;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
@@ -11,7 +12,6 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Scroller;
 
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -45,6 +45,10 @@ public class MarqueeLayout extends ViewGroup {
      */
     private boolean mEnableAlphaAnim;
     private boolean mEnableScaleAnim;
+
+    private MarqueeLayoutAdapter mAdapter;
+
+    private MarqueeObserver mMarqueeObserver = new MarqueeObserver();
 
     public MarqueeLayout(Context context) {
         super(context);
@@ -170,6 +174,11 @@ public class MarqueeLayout extends ViewGroup {
 
     @Override
     public void computeScroll() {
+
+        if (mItemCount == 0) {
+            return;
+        }
+
         if (mScroller.computeScrollOffset()) {
             if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
                 scrollTo(0, mScroller.getCurrY());
@@ -315,7 +324,6 @@ public class MarqueeLayout extends ViewGroup {
                     } else {
                         smoothScroll(mScrollDistance);
                     }
-                    postInvalidate();
                     break;
                 case ORIENTATION_DOWN:
                     mCurrentPosition--;
@@ -325,7 +333,6 @@ public class MarqueeLayout extends ViewGroup {
                     } else {
                         smoothScroll(-mScrollDistance);
                     }
-                    postInvalidate();
                     break;
                 case ORIENTATION_LEFT:
                     mCurrentPosition++;
@@ -335,7 +342,6 @@ public class MarqueeLayout extends ViewGroup {
                     } else {
                         smoothScroll(mScrollDistance);
                     }
-                    postInvalidate();
                     break;
                 case ORIENTATION_RIGHT:
                     mCurrentPosition--;
@@ -345,12 +351,11 @@ public class MarqueeLayout extends ViewGroup {
                     } else {
                         smoothScroll(-mScrollDistance);
                     }
-                    postInvalidate();
                     break;
-
             }
-
+            postInvalidate();
         }
+
     }
 
     /**
@@ -379,18 +384,54 @@ public class MarqueeLayout extends ViewGroup {
         mTimer = null;
     }
 
-    public void setAdapter(MarqueeLayoutAdapter<String> adapter) {
-        final ArrayList<View> views = adapter.getViews();
-        if (views == null) {
-            return;
+    private class MarqueeObserver extends DataSetObserver {
+
+        @Override
+        public void onChanged() {
+            super.onChanged();
+            addChildView(mAdapter);
         }
+    }
+
+    public void setAdapter(MarqueeLayoutAdapter adapter) {
+
+        adapter.registerDataSetObserver(mMarqueeObserver);
+
+        addChildView(adapter);
+
+    }
+
+    private void addChildView(MarqueeLayoutAdapter adapter) {
+
+        mAdapter = adapter;
 
         removeAllViews();
-        for (View view : views) {
-            addView(view);
+        for (int i = 0; i < adapter.getCount(); i++) {
+            final View child = adapter.getView(i, null, this);
+            addView(child);
         }
 
-        mItemCount = views.size();
+        if (adapter.getCount() > 1) {
+            switch (getOrientation()) {
+                case MarqueeLayout.ORIENTATION_UP:
+                case MarqueeLayout.ORIENTATION_LEFT:
+                    addView(adapter.getView(0, null, this), getChildCount());
+                    break;
+                case MarqueeLayout.ORIENTATION_DOWN:
+                case MarqueeLayout.ORIENTATION_RIGHT:
+                    addView(adapter.getView(getChildCount() - 1, null, this), 0);
+                    break;
+            }
+            mItemCount = adapter.getCount() + 1;
+        } else {
+            mItemCount = adapter.getCount();
+        }
+
+        if (mItemCount <= 1) {
+            mScroller.forceFinished(true);
+            scrollTo(0, 0);
+        }
+
     }
 
     public int getOrientation() {

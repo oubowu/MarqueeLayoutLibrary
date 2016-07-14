@@ -18,7 +18,6 @@
         android:id="@+id/marquee_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:background="#118866"
         app:enableAlphaAnim="true"
         app:enableScaleAnim="false"
@@ -37,5 +36,22 @@
         app:orientation="left">
 
     </com.oushangfeng.marqueelayout.MarqueeLayout>
+
+    <Button
+        android:id="@+id/bt_delete"
+        android:onClick="deleteSrc"
+        android:text="删除歌词"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <Button
+        android:onClick="addSrc"
+        android:text="添加歌词"
+        android:layout_above="@+id/bt_delete"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </RelativeLayout>
