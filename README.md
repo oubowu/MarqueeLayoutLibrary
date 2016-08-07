@@ -7,7 +7,7 @@
 
 ### 使用
 ```groovy
-compile 'com.oushangfeng:MarqueeLayout:1.0.3'
+compile 'com.oushangfeng:MarqueeLayout:1.0.4'
 ```
 
 ### 属性
@@ -101,25 +101,33 @@ compile 'com.oushangfeng:MarqueeLayout:1.0.3'
                 Glide.with(view.getContext()).load(item).into((ImageView) view);
             }
         };
+        // 设置点击事件，第二个参数为不定长id，为想要点击的view的id，若为空或者不传的话默认为点击最外层的view
+        adapter1.setItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                Log.e("TAG", "MainActivity-74行-onClick(): " + position);
+            }
+        }, R.id.iv);        
+        
         mMarqueeLayout1.setAdapter(adapter1);
         mMarqueeLayout1.start();
         
-            // 删歌词
-            public void deleteSrc(View view) {
-                if (mSrcList.size() != 0) {
-                    mSrcList.remove(mSrcList.size() - 1);
-                    mSrcAdapter.notifyDataSetChanged();
-                }
+        // 删歌词
+        public void deleteSrc(View view) {
+            if (mSrcList.size() != 0) {
+                mSrcList.remove(mSrcList.size() - 1);
+                mSrcAdapter.notifyDataSetChanged();
             }
+        }
         
-            // 添加歌词
-            public void addSrc(View view) {
-                if (mSrcList != null) {
-                    Random random = new Random();
-                    mSrcList.add("添加歌词: " + random.nextInt(12345));
-                    mSrcAdapter.notifyDataSetChanged();
-                }
+        // 添加歌词
+        public void addSrc(View view) {
+            if (mSrcList != null) {
+                Random random = new Random();
+                mSrcList.add("添加歌词: " + random.nextInt(12345));
+                mSrcAdapter.notifyDataSetChanged();
             }
+        }
         
 ```
 

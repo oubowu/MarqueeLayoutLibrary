@@ -52,6 +52,7 @@ public class MarqueeLayout extends ViewGroup {
 
     public MarqueeLayout(Context context) {
         super(context);
+        init(context, null);
     }
 
     public MarqueeLayout(Context context, AttributeSet attrs) {
@@ -71,13 +72,15 @@ public class MarqueeLayout extends ViewGroup {
     }
 
     private void init(Context context, AttributeSet attrs) {
-        final TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.MarqueeLayout);
-        mSwitchTime = ta.getInt(R.styleable.MarqueeLayout_switchTime, 2500);
-        mScrollTime = ta.getInt(R.styleable.MarqueeLayout_scrollTime, 1000);
-        mOrientation = ta.getInt(R.styleable.MarqueeLayout_orientation, ORIENTATION_UP);
-        mEnableAlphaAnim = ta.getBoolean(R.styleable.MarqueeLayout_enableAlphaAnim, false);
-        mEnableScaleAnim = ta.getBoolean(R.styleable.MarqueeLayout_enableScaleAnim, false);
-        ta.recycle();
+        if (attrs != null) {
+            final TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.MarqueeLayout);
+            mSwitchTime = ta.getInt(R.styleable.MarqueeLayout_switchTime, 2500);
+            mScrollTime = ta.getInt(R.styleable.MarqueeLayout_scrollTime, 1000);
+            mOrientation = ta.getInt(R.styleable.MarqueeLayout_orientation, ORIENTATION_UP);
+            mEnableAlphaAnim = ta.getBoolean(R.styleable.MarqueeLayout_enableAlphaAnim, false);
+            mEnableScaleAnim = ta.getBoolean(R.styleable.MarqueeLayout_enableScaleAnim, false);
+            ta.recycle();
+        }
         mScroller = new Scroller(context, new AccelerateDecelerateInterpolator());
     }
 
@@ -122,7 +125,7 @@ public class MarqueeLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // 声明一个临时变量存储高度倍增值
+
         final int paddingLeft = getPaddingLeft();
         final int paddingTop = getPaddingTop();
 
@@ -391,8 +394,8 @@ public class MarqueeLayout extends ViewGroup {
             super.onChanged();
             addChildView(mAdapter);
         }
-    }
 
+    }
     public void setAdapter(MarqueeLayoutAdapter adapter) {
 
         adapter.registerDataSetObserver(mMarqueeObserver);
@@ -434,18 +437,6 @@ public class MarqueeLayout extends ViewGroup {
 
     }
 
-    public int getOrientation() {
-        return mOrientation;
-    }
-
-    public int getItemCount() {
-        return mItemCount;
-    }
-
-    public int getCurrentPosition() {
-        return mCurrentPosition;
-    }
-
     @Override
     public void onWindowFocusChanged(boolean hasWindowFocus) {
         super.onWindowFocusChanged(hasWindowFocus);
@@ -469,6 +460,54 @@ public class MarqueeLayout extends ViewGroup {
             mTimer.purge();
             mTimer = null;
         }
+    }
+
+    public int getItemCount() {
+        return mItemCount;
+    }
+
+    public int getCurrentPosition() {
+        return mCurrentPosition;
+    }
+
+    public int getOrientation() {
+        return mOrientation;
+    }
+
+    public void setOrientation(int orientation) {
+        mOrientation = orientation;
+    }
+
+    public int getSwitchTime() {
+        return mSwitchTime;
+    }
+
+    public void setSwitchTime(int switchTime) {
+        mSwitchTime = switchTime;
+    }
+
+    public int getScrollTime() {
+        return mScrollTime;
+    }
+
+    public void setScrollTime(int scrollTime) {
+        mScrollTime = scrollTime;
+    }
+
+    public boolean isEnableAlphaAnim() {
+        return mEnableAlphaAnim;
+    }
+
+    public void setEnableAlphaAnim(boolean enableAlphaAnim) {
+        mEnableAlphaAnim = enableAlphaAnim;
+    }
+
+    public boolean isEnableScaleAnim() {
+        return mEnableScaleAnim;
+    }
+
+    public void setEnableScaleAnim(boolean enableScaleAnim) {
+        mEnableScaleAnim = enableScaleAnim;
     }
 
 }

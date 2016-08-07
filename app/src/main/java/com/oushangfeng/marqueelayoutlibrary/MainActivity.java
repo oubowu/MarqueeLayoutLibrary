@@ -3,6 +3,7 @@ package com.oushangfeng.marqueelayoutlibrary;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.oushangfeng.marqueelayout.MarqueeLayout;
 import com.oushangfeng.marqueelayout.MarqueeLayoutAdapter;
+import com.oushangfeng.marqueelayout.OnItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +69,15 @@ public class MainActivity extends AppCompatActivity {
                 Glide.with(view.getContext()).load(item).into((ImageView) view);
             }
         };
+        adapter1.setItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                Log.e("TAG", "MainActivity-74行-onClick(): " + position);
+            }
+        }, R.id.iv);
         mMarqueeLayout1.setAdapter(adapter1);
         mMarqueeLayout1.start();
+
     }
 
     // 删歌词
