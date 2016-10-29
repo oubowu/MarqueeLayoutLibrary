@@ -281,6 +281,9 @@ public class MarqueeLayout extends ViewGroup {
     }
 
     private void playAnim(View view, boolean enableAlphaAnim, boolean enableScaleAnim, float rate) {
+        if (view == null) {
+            return;
+        }
         if (enableAlphaAnim) {
             ViewCompat.setAlpha(view, rate);
         }
@@ -396,6 +399,7 @@ public class MarqueeLayout extends ViewGroup {
         }
 
     }
+
     public void setAdapter(MarqueeLayoutAdapter adapter) {
 
         adapter.registerDataSetObserver(mMarqueeObserver);
