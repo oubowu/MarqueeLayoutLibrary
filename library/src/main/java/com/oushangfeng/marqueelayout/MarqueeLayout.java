@@ -5,15 +5,17 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Scroller;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.lang.ref.WeakReference;
 
 /**
  * Created by Oubowu on 2016/6/24 11:19.
@@ -32,8 +34,6 @@ public class MarqueeLayout extends ViewGroup {
     private int mSwitchTime;
     private int mScrollTime;
 
-    private Timer mTimer;
-
     private Scroller mScroller;
 
     /**
@@ -49,6 +49,8 @@ public class MarqueeLayout extends ViewGroup {
     private MarqueeLayoutAdapter mAdapter;
 
     private MarqueeObserver mMarqueeObserver = new MarqueeObserver();
+
+    private boolean mVisible;
 
     public MarqueeLayout(Context context) {
         super(context);
@@ -170,9 +172,14 @@ public class MarqueeLayout extends ViewGroup {
     }
 
     @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        stop();
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        mVisible = visibility == VISIBLE;
+        if (visibility == VISIBLE) {
+            carryOn();
+        } else {
+            pause();
+        }
     }
 
     @Override
@@ -191,12 +198,13 @@ public class MarqueeLayout extends ViewGroup {
                 handleScrollAnim();
             }
             invalidate();
-        } else if (mTimer != null) {
+        } else if (!mScroller.computeScrollOffset()) {
             switch (mOrientation) {
                 case ORIENTATION_UP:
                     if (mCurrentPosition >= mItemCount - 1) {
                         // 滚动到最后一个时，迅速回到第一个，造成轮播的假象
                         fastScroll(-mCurrentPosition * mScrollDistance);
+                        // Log.e("MarqueeLayout", "218行-computeScroll(): " + mCurrentPosition * mScrollDistance);
                         mCurrentPosition = 0;
                     }
                     break;
@@ -226,6 +234,7 @@ public class MarqueeLayout extends ViewGroup {
     private void smoothScroll(int distance) {
         if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
             mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, mScrollTime);
+            Log.e("MarqueeLayout", "246行-smoothScroll(): " + mScroller.getFinalY() + ";" + distance);
         } else {
             mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, mScrollTime);
         }
@@ -234,6 +243,7 @@ public class MarqueeLayout extends ViewGroup {
     private void fastScroll(int distance) {
         if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
             mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, 0);
+            Log.e("MarqueeLayout", "254行-fastScroll(): " + mScroller.getFinalY() + ";" + distance);
         } else {
             mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, 0);
         }
@@ -317,77 +327,44 @@ public class MarqueeLayout extends ViewGroup {
         return p instanceof MarginLayoutParams;
     }
 
-    private class SwitchTimerTask extends TimerTask {
-
-        @Override
-        public void run() {
-            switch (mOrientation) {
-                case ORIENTATION_UP:
-                    mCurrentPosition++;
-                    if (mCurrentPosition >= mItemCount) {
-                        mCurrentPosition = 0;
-                        fastScroll(-getScrollY());
-                    } else {
-                        smoothScroll(mScrollDistance);
-                    }
-                    break;
-                case ORIENTATION_DOWN:
-                    mCurrentPosition--;
-                    if (mCurrentPosition < 0) {
-                        mCurrentPosition = 1;
-                        fastScroll(-getScrollY());
-                    } else {
-                        smoothScroll(-mScrollDistance);
-                    }
-                    break;
-                case ORIENTATION_LEFT:
-                    mCurrentPosition++;
-                    if (mCurrentPosition >= mItemCount) {
-                        mCurrentPosition = 0;
-                        fastScroll(-getScrollX());
-                    } else {
-                        smoothScroll(mScrollDistance);
-                    }
-                    break;
-                case ORIENTATION_RIGHT:
-                    mCurrentPosition--;
-                    if (mCurrentPosition < 0) {
-                        mCurrentPosition = 1;
-                        fastScroll(-getScrollX());
-                    } else {
-                        smoothScroll(-mScrollDistance);
-                    }
-                    break;
-            }
-            postInvalidate();
-        }
-
-    }
-
     /**
      * 开始轮播
      */
     public void start() {
-        if (getChildCount() <= 1 || mTimer != null) {
-            // 小于等于1没必要轮播
+        if (getChildCount() <= 1 || mHandler != null) {
             return;
         }
         mIsStart = true;
-        mTimer = new Timer();
-        mTimer.schedule(new SwitchTimerTask(), mSwitchTime, mSwitchTime);
+        mHandler = new MarqueeLayoutHandler(this);
+        mHandler.sendEmptyMessageDelayed(100, mSwitchTime);
     }
 
     /**
      * 停止轮播
      */
     public void stop() {
-        if (mTimer == null) {
+        if (mHandler == null) {
             return;
         }
         mIsStart = false;
-        mTimer.cancel();
-        mTimer.purge();
-        mTimer = null;
+        mHandler.removeMessages(100);
+    }
+
+    private void carryOn() {
+        if (mIsStart && mHandler != null) {
+            mHandler.removeMessages(100);
+            mHandler.sendEmptyMessageDelayed(100, mSwitchTime);
+            // Log.e("MarqueeLayout", "190行-onWindowVisibilityChanged(): " + "carryOn");
+        }
+    }
+
+    private void pause() {
+        if (mIsStart && mHandler != null) {
+            mHandler.removeMessages(100);
+            // mScroller.abortAnimation();
+
+            // Log.e("MarqueeLayout", "193行-onWindowVisibilityChanged(): " + "pause");
+        }
     }
 
     private class MarqueeObserver extends DataSetObserver {
@@ -422,10 +399,12 @@ public class MarqueeLayout extends ViewGroup {
             switch (getOrientation()) {
                 case MarqueeLayout.ORIENTATION_UP:
                 case MarqueeLayout.ORIENTATION_LEFT:
+                    // 首添加到尾
                     addView(adapter.getView(0, null, this), getChildCount());
                     break;
                 case MarqueeLayout.ORIENTATION_DOWN:
                 case MarqueeLayout.ORIENTATION_RIGHT:
+                    // 尾添加到首
                     addView(adapter.getView(getChildCount() - 1, null, this), 0);
                     break;
             }
@@ -439,31 +418,6 @@ public class MarqueeLayout extends ViewGroup {
             scrollTo(0, 0);
         }
 
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasWindowFocus) {
-        super.onWindowFocusChanged(hasWindowFocus);
-        if (hasWindowFocus) {
-            carryOn();
-        } else {
-            pause();
-        }
-    }
-
-    private void carryOn() {
-        if (mIsStart && mTimer == null) {
-            mTimer = new Timer();
-            mTimer.schedule(new SwitchTimerTask(), mSwitchTime, mSwitchTime);
-        }
-    }
-
-    private void pause() {
-        if (mIsStart && mTimer != null) {
-            mTimer.cancel();
-            mTimer.purge();
-            mTimer = null;
-        }
     }
 
     public int getItemCount() {
@@ -512,6 +466,47 @@ public class MarqueeLayout extends ViewGroup {
 
     public void setEnableScaleAnim(boolean enableScaleAnim) {
         mEnableScaleAnim = enableScaleAnim;
+    }
+
+    private MarqueeLayoutHandler mHandler;
+
+    private static class MarqueeLayoutHandler extends Handler {
+
+        private WeakReference<MarqueeLayout> mReference;
+
+        MarqueeLayoutHandler(MarqueeLayout marqueeLayout) {
+            mReference = new WeakReference<>(marqueeLayout);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MarqueeLayout marqueeLayout = mReference.get();
+            if (marqueeLayout != null && marqueeLayout.mVisible) {
+                if (msg.what == 100) {
+                    switch (marqueeLayout.mOrientation) {
+                        case ORIENTATION_UP:
+                            marqueeLayout.mCurrentPosition++;
+                            marqueeLayout.smoothScroll(marqueeLayout.mScrollDistance);
+                            break;
+                        case ORIENTATION_DOWN:
+                            marqueeLayout.mCurrentPosition--;
+                            marqueeLayout.smoothScroll(-marqueeLayout.mScrollDistance);
+                            break;
+                        case ORIENTATION_LEFT:
+                            marqueeLayout.mCurrentPosition++;
+                            marqueeLayout.smoothScroll(marqueeLayout.mScrollDistance);
+                            break;
+                        case ORIENTATION_RIGHT:
+                            marqueeLayout.mCurrentPosition--;
+                            marqueeLayout.smoothScroll(-marqueeLayout.mScrollDistance);
+                            break;
+                    }
+                    marqueeLayout.postInvalidate();
+                    sendEmptyMessageDelayed(100, marqueeLayout.mSwitchTime);
+                }
+            }
+        }
+
     }
 
 }
