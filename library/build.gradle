@@ -25,7 +25,7 @@ dependencies {
     provided 'com.android.support:appcompat-v7:25.0.0'
 }
 
-//添加
+////添加
 //publish {
 //    Properties properties = new Properties()
 //    properties.load(project.rootProject.file('local.properties').newDataInputStream())

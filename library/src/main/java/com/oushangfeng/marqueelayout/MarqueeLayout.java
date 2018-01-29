@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -183,6 +182,21 @@ public class MarqueeLayout extends ViewGroup {
     }
 
     @Override
+    public void onScreenStateChanged(int screenState) {
+        super.onScreenStateChanged(screenState);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mVisible = screenState == View.SCREEN_STATE_ON;
+        } else {
+            mVisible = screenState == 1;
+        }
+        if (screenState == View.SCREEN_STATE_OFF) {
+            pause();
+        } else {
+            carryOn();
+        }
+    }
+
+    @Override
     public void computeScroll() {
 
         if (mItemCount == 0) {
@@ -234,7 +248,7 @@ public class MarqueeLayout extends ViewGroup {
     private void smoothScroll(int distance) {
         if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
             mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, mScrollTime);
-            Log.e("MarqueeLayout", "246行-smoothScroll(): " + mScroller.getFinalY() + ";" + distance);
+            // Log.e("MarqueeLayout", "246行-smoothScroll(): " + mScroller.getFinalY() + ";" + distance);
         } else {
             mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, mScrollTime);
         }
@@ -243,7 +257,7 @@ public class MarqueeLayout extends ViewGroup {
     private void fastScroll(int distance) {
         if (mOrientation == ORIENTATION_DOWN || mOrientation == ORIENTATION_UP) {
             mScroller.startScroll(0, mScroller.getFinalY(), 0, distance, 0);
-            Log.e("MarqueeLayout", "254行-fastScroll(): " + mScroller.getFinalY() + ";" + distance);
+            // Log.e("MarqueeLayout", "254行-fastScroll(): " + mScroller.getFinalY() + ";" + distance);
         } else {
             mScroller.startScroll(mScroller.getFinalX(), 0, distance, 0, 0);
         }
