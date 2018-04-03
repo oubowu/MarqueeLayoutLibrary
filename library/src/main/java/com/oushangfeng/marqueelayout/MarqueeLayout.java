@@ -7,6 +7,7 @@ import android.database.DataSetObserver;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
@@ -174,6 +175,18 @@ public class MarqueeLayout extends ViewGroup {
     protected void onWindowVisibilityChanged(int visibility) {
         super.onWindowVisibilityChanged(visibility);
         mVisible = visibility == VISIBLE;
+        if (visibility == VISIBLE) {
+            carryOn();
+        } else {
+            pause();
+        }
+    }
+
+    @Override
+    protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        mVisible = visibility == VISIBLE;
+        // Log.e("MarqueeLayout", "191行-onVisibilityChanged(): " + mVisible);
         if (visibility == VISIBLE) {
             carryOn();
         } else {

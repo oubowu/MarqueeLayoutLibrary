@@ -7,7 +7,7 @@
 
 ### 使用
 ```groovy
-compile 'com.oushangfeng:MarqueeLayout:1.0.7'
+compile 'com.oushangfeng:MarqueeLayout:1.0.8'
 ```
 
 ### 属性
